@@ -1,0 +1,17 @@
+North Bound 8th -> 13th
+Clarkson - 9848, 8545, 5490, 6550, 8314
+Logan - 5420, 7290, 6525, 8116, 6411
+Lincoln - 2286, 2049, 845, 3098, 4142
+
+
+East Bound
+
+
+South Bound 13th -> 8th 
+Corona -  7786, 5093, 6483, 6077, 9137
+Washington -  6443, 7679, 9745, 9853, 7791
+Grant -  7957, 9186, 9831, 5769, 9063
+
+West Bound Corona -> Lincoln
+8th - 9337, 5846 and 6440, 6270 and 7914, 5135, 6899
+13th - 9864, 7567, 7802 and 6734 and 9802, 8106, 5506 and 5740

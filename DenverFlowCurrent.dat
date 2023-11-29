@@ -1,0 +1,17 @@
+data;
+
+set INTER := a b c d e f g ;
+
+param:  ROADS:  capacity	time :=
+         a b    50			1.2
+         a c    100			4
+         a g	Infinity	0
+         b d    40			3.2
+         b e    20			4.1
+         c d    60			5
+         c f    20			4.3
+         d e    50			1.2
+         d f    60			0.9
+         e g    70			7.2
+         f g    70			4.3 
+         g a	Infinity	0;

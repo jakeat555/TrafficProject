@@ -1,0 +1,101 @@
+---
+title: "Modeling"
+author: "Jacob Johns"
+date: "2023-11-03"
+output: html_document
+---
+
+## Initialize Document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(car)
+```
+
+## Read In Data
+
+```{r}
+traffic = read.csv("DenTraffic2019ToModel.csv")
+traffic$SEGMDIR = as.factor(traffic$SEGMDIR)
+traffic$FUNCCLASSI = as.factor(traffic$FUNCCLASSI)
+```
+
+## Linear Model 1 - All features, no interactions
+
+interaction of road size and number of lanes
+
+```{r}
+mod1 = lm(AADT ~ SEG_LENGTH + I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + THRULNWD + RUNLENGTH1, data = traffic)
+summary(mod1)
+```
+
+The only features for which we don't have overwhelming evidence are effective in predicting $\verb|AADT|$ are $\verb|SEG_LENGTH|$ , some directions of $\verb|SEGDIR|$ , $\verb|PSI|$ , $\verb|THRULNWD|$ and $\verb|RUNLENGTH1|$ .
+
+### ANOVA
+
+Accordingly, we will run an ANOVA test to see if the features just mentioned help the model enough to keep them in. We will keep them in if their p-score associated with their F-statistic is less than 0.05.
+
+```{r}
+mod1sansLEN = lm(AADT ~ I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + THRULNWD + RUNLENGTH1, data = traffic)
+anova(mod1sansLEN,mod1)
+```
+
+An F-statistic of 0.22 and p-value of 0.63 indicates we don't need to keep $\verb|SEG_LENGTH|$ in the model.
+
+```{r}
+mod1sansDIR = lm(AADT ~ SEG_LENGTH + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + THRULNWD + RUNLENGTH1, data = traffic)
+anova(mod1sansDIR,mod1)
+```
+
+An F-statistic of 20.388 and p-value of 2.2e-16 indicates we should keep $\verb|SEGMDIR|$ in the model. This warrants more discussion though, as many of the individual directions didn't have a significant impact on the model.
+
+```{r}
+mod1sansPSI = lm(AADT ~ SEG_LENGTH + I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + THRULNQTY + THRULNWD + RUNLENGTH1, data = traffic)
+anova(mod1sansPSI,mod1)
+```
+
+An F-statistic of 0.75 and p-value of 0.38 indicates we don't need to keep $\verb|PSI|$ in the model.
+
+```{r}
+mod1sansLNWD = lm(AADT ~ SEG_LENGTH + I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + RUNLENGTH1, data = traffic)
+anova(mod1sansLNWD,mod1)
+```
+
+An F-statistic of 0.59 and p-value of 0.44 indicates we don't need keep $\verb|THRULNWD|$ in the model.
+
+```{r}
+mod1sansRUN = lm(AADT ~ SEG_LENGTH  + I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + THRULNWD, data = traffic)
+anova(mod1sansRUN,mod1)
+```
+
+An F-statistic of 2.28 and p-value of 0.13 indicates we don't need to keep $\verb|RUN_LENGTH1|$ in the model.
+
+## Linear Model 2 - Some features, no interactions
+
+```{r}
+mod2 = lm(AADT ~ SURFWD + THRULNQTY + I(SEGMDIR), data = traffic)
+summary(mod2)
+```
+
+### VIF
+
+This checks for collinearity in our features. This statistic is on a scale that starts at 1, and lower values are indicative of no collinearity.
+
+```{r}
+vif(mod1)
+```
+
+None of these features are of concern. This supports the conclusion we started to come to with the correlation heat-map.
+
+## Model Validity
+
+```{r}
+
+```
+
+## Outliers
+
+```{r}
+outlierTest(mod1)
+```

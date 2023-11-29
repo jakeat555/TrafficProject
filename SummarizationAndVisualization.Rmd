@@ -1,0 +1,102 @@
+---
+title: "SummarizationAndVisualization"
+author: "Jacob Johns"
+date: "2023-11-03"
+output: html_document
+---
+
+# Summarization and Visualization
+
+## Initialize Document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+```
+
+## Read In Data
+
+```{r}
+traffic = read.csv("DenTraffic2019ToModel.csv")
+traffic = subset(traffic,traffic$FUNCCLASSI!="2  Principal Arterial - Fwys and Expwys")
+```
+
+## Summarization
+
+```{r}
+summary(traffic)
+```
+
+## Visualizations
+
+### Quantitative Graphs
+
+#### SEG_LENGTH
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$SEG_LENGTH))
+plot(traffic$AADT ~ traffic$SEG_LENGTH)
+```
+
+#### SURFWD
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$SURFWD))
+plot(traffic$AADT ~ traffic$SURFWD)
+```
+
+#### PSI
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$PSI))
+plot(traffic$AADT ~ traffic$PSI)
+```
+
+#### THRULNQTY
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$THRULNQTY))
+plot(traffic$AADT ~ traffic$THRULNQTY)
+```
+
+#### THRULNWD
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$THRULNWD))
+plot(traffic$AADT ~ traffic$THRULNWD)
+```
+
+#### RUNLENGTH1
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$RUNLENGTH1))
+plot(traffic$AADT ~ traffic$RUNLENGTH1)
+```
+
+### Qualitative Charts
+
+#### AADTDERIV
+
+```{r}
+barplot(table(traffic$AADTDERIV))
+```
+
+#### SEGDIR
+
+```{r}
+#barplot x=factor levels y=count
+barplot(table(traffic$SEGMDIR))
+```
+
+#### FUNCCLASSI
+
+```{r}
+barplot(table(traffic$FUNCCLASSI))
+```
