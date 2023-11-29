@@ -1,0 +1,113 @@
+---
+title: "LinearProgrammingPart"
+author: "Jacob Johns"
+date: "2023-11-21"
+output: html_document
+---
+
+# Linear Programming
+
+## Initialize Document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read In Data
+
+```{r}
+traffic = read.csv("Road_Traffic_Counts_in_Colorado_2019_20231027.csv")
+```
+
+## Add Network Flow Constraints
+
+```{r}
+traffic$CAPACITY = traffic$AADT*traffic$SEG_LENGTH/24/25
+traffic$COST = traffic$SEG_LENGTH
+traffic = subset(traffic, select = c(SEGMID,COST,FUNCCLASSI,SURFWD,THRULNQTY,CAPACITY,AADT))
+```
+
+## Subset Surveyed Roads
+
+```{r}
+lincoln = subset(traffic,rownames(traffic)%in%c(4142,3098,845,2049,2286))
+grant = subset(traffic,rownames(traffic)%in%c(7957,9186,9831,5769,9063))
+wash = subset(traffic,rownames(traffic)%in%c(6443,7679,9745,9853,7791))
+clark = subset(traffic,rownames(traffic)%in%c(8314,6550,5490,8545,9848))
+corona = subset(traffic,rownames(traffic)%in%c(7786,5093,6483,6077,9137))
+logan = subset(traffic,rownames(traffic)%in%c(6411,8116,6525,7290,5420))
+thirteenth = subset(traffic,rownames(traffic)%in%c(5740,5506,8160,6734,7802,7567,9864))
+eigth = subset(traffic,rownames(traffic)%in%c(6899,9973,9572,7914,6270,5846,6440,9337))
+eleventh = subset(traffic,rownames(traffic)%in%c(25945,26021,25977,25361,25392,25794,25206,25598,25692,26047))
+```
+
+## Read In Model
+
+```{r}
+model = readRDS("model3Limited")
+```
+
+## Helper Function for Predicting
+
+```{r}
+generate_df <- function(SEG_LENGTH,SURFWD,model,THRULNQTY=2,FUNCCLASSI ="5  Major Collector"){
+  street = data.frame(FUNCCLASSI,SURFWD,THRULNQTY,SEG_LENGTH)
+  street$AADT = predict(model, type = 'response', newdata = street)
+  street$CAPACITY = street$AADT*street$SEG_LENGTH/24/25
+  street$COST = street$SEG_LENGTH
+  street = subset(street, select = c(COST,THRULNQTY,CAPACITY,AADT))
+  return(street)
+}
+```
+
+## Predict Current Non-Surveyed Roads
+
+```{r}
+SEG_LENGTH = c(0.14,0.07,0.19,0.06,0.19)
+SURFWD = c(32,34,32,36,36)
+predNinethE = generate_df(SEG_LENGTH,SURFWD,model)
+predNinethW = generate_df(rev(SEG_LENGTH),rev(SURFWD),model)
+
+SURFWD = c(32,36,36,36,36)
+predTenthE = generate_df(SEG_LENGTH,SURFWD,model)
+predTenthW = generate_df(rev(SEG_LENGTH),rev(SURFWD),model)
+
+SURFWD = c(34,24,36,36,36)
+predTwelfthE = generate_df(SEG_LENGTH,SURFWD,model)
+predTwelfthW = generate_df(rev(SEG_LENGTH),rev(SURFWD),model)
+```
+
+## Predict One-way Conversion
+
+If we were to make 9th and 12th east bound one-ways and 10th a west bound one-way, we would expect the following data, assuming we now have 3 through lanes.
+
+```{r}
+SEG_LENGTH = c(0.14,0.07,0.19,0.06,0.19)
+SURFWD = c(32,34,32,36,36)
+predNinethEOne = generate_df(SEG_LENGTH,SURFWD,model,THRULNQTY = 3)
+
+SURFWD = c(32,36,36,36,36)
+predTenthWOne = generate_df(rev(SEG_LENGTH),rev(SURFWD),model,THRULNQTY = 3)
+
+SURFWD = c(34,24,36,36,36)
+predTwelfthEOne = generate_df(SEG_LENGTH,SURFWD,model,THRULNQTY = 3)
+```
+
+## Predict Two-way Conversion
+
+If we were to make Washington, Clarkson, and Corona (because they primarly have housing units on them) two-ways, this is what we'd expect, assuming
+
+```{r}
+SEG_LENGTH = c(0.10,0.11,0.11,0.10,0.12)
+SURFWD = c(32,32,32,32,32)
+predWashNTwo = generate_df(SEG_LENGTH,SURFWD,model,THRULNQTY = 1)
+predWashSTwo = generate_df(rev(SEG_LENGTH),rev(SURFWD),model,THRULNQTY = 1)
+
+
+predClarkNTwo = generate_df(SEG_LENGTH,SURFWD,model,THRULNQTY = 1)
+predClarkSTwo = generate_df(rev(SEG_LENGTH),rev(SURFWD),model,THRULNQTY = 1)
+
+
+predCorNTwo = generate_df(SEG_LENGTH,SURFWD,model,THRULNQTY = 1)
+predCorSTwo = generate_df(rev(SEG_LENGTH),rev(SURFWD),model,THRULNQTY = 1)
+```

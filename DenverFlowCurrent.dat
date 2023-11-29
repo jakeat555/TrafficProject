@@ -1,17 +1,138 @@
 data;
 
-set INTER := a b c d e f g ;
-
-param:  ROADS:  capacity	time :=
-         a b    50			1.2
-         a c    100			4
-         a g	Infinity	0
-         b d    40			3.2
-         b e    20			4.1
-         c d    60			5
-         c f    20			4.3
-         d e    50			1.2
-         d f    60			0.9
-         e g    70			7.2
-         f g    70			4.3 
-         g a	Infinity	0;
+set INTER := 	13li	13gr	13lo	13wa	13cl	13co
+				12li	12gr	12lo	12wa	12cl	12co
+				11li	11gr	11lo	11wa	11cl	11co
+				10li	10gr	10lo	10wa	10cl	10co
+				9li		9gr		9lo		9wa		9cl		9co
+				8li		8gr		8lo		8wa		8cl		8co;
+param:  ROADS:  	capacity	time :=
+        #North Bound Road Segments
+        8li 9li		3.06	0.08	# 2x for scale
+		#8gr 9gr
+		8lo 9lo		0.90	0.09
+		#8wa 9wa
+		8cl 9cl		0.63	0.10
+		#8co 9co
+		9li	10li	2.68	0.07
+		#9gr 10gr
+		9lo	10lo	1.10	0.11
+		#9wa 10wa
+		9cl	10cl	0.69	0.11
+		#9co 10co
+		10li 11li	3.45	0.09
+		#10gr 11gr
+		10lo 11lo	1.20	0.12
+		#10wa 11wa
+		10cl 11cl	0.69	0.11
+		#10co 11co
+		11li 12li	3.45	0.09
+		#11gr 12gr
+		11lo 12lo	1.00	0.10
+		#11wa 12wa
+		11cl 12cl	0.63	0.10
+		#11co 12co
+		12li 13li	4.21	0.11
+		#12gr 13gr
+		12lo 13lo	1.20	0.09
+		#12wa 13wa
+		12cl 13cl	0.76	0.12
+		#12co 13co
+        
+        
+        #East Bound Road Segments
+        #13li 13gr
+		12li 12gr	1.13	0.14
+		11li 11gr	1.62	0.14	# 2x for scaling
+		10li 10gr	1.11	0.14
+		9li	9gr		1.11	0.14
+		#8li 8gr
+		#13gr 13lo
+		12gr 12lo	0.52	0.07
+		11gr 11lo	0.69	0.07
+		10gr 10lo	0.57	0.07
+		9gr	9lo		0.56	0.07
+		#8gr 8lo
+		#13lo 13wa
+		12lo 12wa	1.56	0.06
+		11lo 11wa	0.81	0.13
+		#10lo 10wa
+		9lo	9wa		1.51	0.19
+		#8lo 8wa
+		#13wa 13cl
+		12wa 12cl	0.49	0.06
+		11wa 11cl	0.69	0.06
+		#10wa 10cl
+		9wa	9cl		0.49	0.06
+		#8wa 8cl
+		#13cl 13co
+		12cl 12co	1.56	0.19
+		11cl 11co	1.38	0.12
+		#10cl 10co
+		9cl	9co		1.56	0.19
+		#8cl 8co		        
+        
+        #South Bound Road Segments
+		#13li 12li
+		13gr 12gr	1.83	0.11
+		#13lo 12lo
+		13wa 12wa	1.08	0.12
+		#13cl 12cl
+		13co 12co	0.86	0.12
+		#12li 11li
+		12gr 11gr	1.66	0.10
+		#12lo 11lo
+		12wa 11wa	0.90	0.10
+		#12cl 11cl
+		12co 11co	0.71	0.10
+		#11li 10li
+		11gr 10gr	2.00	0.12
+		#11lo 10lo
+		11wa 10wa	1.08	0.12
+		#11cl 10cl
+		11co 10co	0.78	0.11
+		#10li 9li
+		10gr 9gr	1.83	0.11
+		#10lo 9lo
+		10wa 9wa	0.99	0.11
+		#10cl 9cl
+		10co 9co	0.86	0.12	# 2x for scale
+		#9li 8li
+		9gr	8gr		1.50	0.09
+		#9lo 8lo
+		9wa	8wa		0.81	0.09
+		#9cl 8cl
+		9co	8co		0.71	0.10
+		        
+        #West Bound Road Segments
+        13co 13cl	2.00	0.12	# 2x for scale
+		12co 12cl	1.56	0.19
+		11co 11cl	1.38	0.12	# 2x for scale
+		#10co 10cl
+		9co	9cl		1.56	0.19
+		8co	8cl		3.60	0.12	# 6x for scale
+		13cl 13wa	1.00	0.06
+		12cl 12wa	0.49	0.06
+		11cl 11wa	0.69	0.06
+		#10cl 10wa
+		9cl	9wa		0.49	0.06
+		8cl	8wa		1.20	0.06
+		13wa 13lo	2.00	0.13	# 2x for scale
+		12wa 12lo	1.56	0.19
+		11wa 11lo	0.81	0.13
+		#10wa 10lo
+		9wa	9lo		1.51	0.19
+		8wa	8lo		3.00	0.10
+		13lo 13gr	1.16	0.07
+		12lo 12gr	0.52	0.07
+		11lo 11gr	0.69	0.07
+		10lo 10gr	0.57	0.07
+		9lo	9gr		0.56	0.07
+		8lo	8gr		1.80	0.06
+		13gr 13li	2.33	0.14	# 2x for scale
+		12gr 12li	1.13	0.14
+		11gr 11li	1.62	0.14	# 2x for scale
+		10gr 10li	1.11	0.14
+		9gr	9li		1.11	0.14
+		8gr	8li 	2.1		0.14;	# Added and 2x
+        
