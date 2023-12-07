@@ -1,0 +1,141 @@
+---
+title: "SummarizationAndVisualization"
+author: "Jacob Johns"
+date: "2023-11-03"
+output: html_document
+---
+
+# Summarization and Visualization
+
+## Initialize Document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+```
+
+## Read In Data
+
+```{r}
+traffic = read.csv("DenTraffic2019ToModel.csv")
+traffic = subset(traffic,traffic$FUNCCLASSI!="2  Principal Arterial - Fwys and Expwys")
+```
+
+## Summarization
+
+```{r}
+summary(traffic)
+```
+
+## Visualizations
+
+### Quantitative Graphs
+
+```{r}
+library(plotly)
+traffic$color = as.factor(traffic$FUNCCLASSI)
+
+fig <- plot_ly(traffic, x = ~AADT, y = ~SURFWD, z = ~THRULNQTY, type = 'mesh3d', 
+        opacity = 1)
+
+fig
+```
+
+#### SEGMDIR
+
+```{r}
+data = data.frame(SEGMDIR = c("N","NE","E","SE","S","SW","W","NW"),
+                  dist = c(
+                    sum(subset(traffic,traffic$SEGMDIR=="N")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="NE")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="E")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="SE")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="S")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="SW")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="W")$SEG_LENGTH),
+                    sum(subset(traffic,traffic$SEGMDIR=="NW")$SEG_LENGTH)
+                  ))
+data$SEGMDIR = factor(data$SEGMDIR,levels=data$SEGMDIR)
+chart <- ggplot(data, aes(x=as.factor(SEGMDIR), y=dist)) +     
+  geom_bar(stat="identity", fill=alpha("blue", 0.4)) +
+  ylim(0,120) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-2,4), "cm"))+
+  coord_polar(start = -pi/8)+
+  geom_text(data=data, aes(x=SEGMDIR, y=dist+10, label = SEGMDIR), color="black", fontface="bold",alpha=0.6, size=2.5, inherit.aes = FALSE )
+chart
+```
+
+#### SEG_LENGTH
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$SEG_LENGTH))
+plot(traffic$AADT ~ traffic$SEG_LENGTH)
+```
+
+#### SURFWD
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$SURFWD))
+plot(traffic$AADT ~ traffic$SURFWD)
+```
+
+#### PSI
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$PSI))
+plot(traffic$AADT ~ traffic$PSI)
+```
+
+#### THRULNQTY
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$THRULNQTY))
+plot(traffic$AADT ~ traffic$THRULNQTY)
+```
+
+#### THRULNWD
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$THRULNWD))
+plot(traffic$AADT ~ traffic$THRULNWD)
+```
+
+#### RUNLENGTH1
+
+```{r}
+par(mfrow = c(1, 2))
+plot(density(traffic$RUNLENGTH1))
+plot(traffic$AADT ~ traffic$RUNLENGTH1)
+```
+
+### Qualitative Charts
+
+#### AADTDERIV
+
+```{r}
+barplot(table(traffic$AADTDERIV))
+```
+
+#### SEGDIR
+
+```{r}
+#barplot x=factor levels y=count
+barplot(table(traffic$SEGMDIR))
+```
+
+#### FUNCCLASSI
+
+```{r}
+barplot(table(traffic$FUNCCLASSI))
+```

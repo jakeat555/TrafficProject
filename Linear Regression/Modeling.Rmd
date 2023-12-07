@@ -1,0 +1,207 @@
+---
+title: "Modeling"
+author: "Jacob Johns"
+date: "2023-11-03"
+output: html_document
+---
+
+# Modeling
+
+## Initialize Document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(car)
+library(MLmetrics)
+```
+
+## Read In Data
+
+```{r}
+traffic = read.csv("DenTraffic2019ToModel.csv")
+traffic$SEGMDIR = as.factor(traffic$SEGMDIR)
+traffic$FUNCCLASSI = as.factor(traffic$FUNCCLASSI)
+traffic = subset(traffic, select = -c(X))
+```
+
+## Linear Model 1 - All Features, No Interactions
+
+interaction of road size and number of lanes
+
+```{r}
+mod1 = lm(AADT ~ SEG_LENGTH + I(SEGMDIR) + I(FUNCCLASSI) + SURFWD + PSI + THRULNQTY + THRULNWD + RUNLENGTH1, data = traffic)
+summary(mod1)
+```
+
+The only features for which we **don't** have overwhelming evidence are effective in predicting $\verb|AADT|$ are $\verb|SEG_LENGTH|$ , some directions of $\verb|SEGDIR|$ , $\verb|PSI|$ , $\verb|THRULNWD|$ and $\verb|RUNLENGTH1|$ . After a quick collinearity check, we will systematically remove the variables one at a time.
+
+### VIF
+
+This checks for collinearity in our features. This statistic is on a scale that starts at 1, and lower values are indicative of no collinearity.
+
+```{r}
+vif(mod1)
+```
+
+None of these features are of concern. This supports the conclusion we started to come to with the correlation heat-map to keep each feature in our first model.
+
+### ANOVA and Variable Selection
+
+Based off our the significant levels from our model, we will run an ANOVA test to see if the features just mentioned help the model enough to keep them in. We will omit them in if the p-score associated with their F-statistic (for variables with factors) or p-value (for numeric variables) is greater than 0.10.
+
+```{r}
+mod1sansDIR = update(mod1,.~.-I(SEGMDIR))
+anova(mod1sansDIR,mod1)
+```
+
+An F-statistic of 20.388 and p-value of 2.2e-16 indicates we should keep $\verb|SEGMDIR|$ in the model. This warrants more discussion though, as many of the individual directions didn't have a significant impact on the model. There isn't any science to support that the direction of travel would affect the average daily traffic. Furthermore, in conjunction with our visualization of the miles of road in each direction in Denver, there is evidence to suggest this data is not useful for predicting $\verb|AADT|$ . Accordingly, we will remove it. H
+
+```{r}
+mod1 = mod1sansDIR
+summary(mod1)
+```
+
+So without $\verb|SEGMDIR|$ the largest p-value is $\verb|RUNLENGTH1|$. So let's see how the model is without it.
+
+```{r}
+mod1 = update(mod1,.~.-RUNLENGTH1)
+summary(mod1)
+```
+
+So without $\verb|RUNLENGTH1|$ the largest p-value is $\verb|PSI|$. So let's see how the model is without it.
+
+```{r}
+mod1 = update(mod1, .~.-PSI)
+summary(mod1)
+```
+
+So without $\verb|PSI|$ the largest p-value is $\verb|SEG_LENGTH|$. So let's see how the model is without it.
+
+```{r}
+mod1 = update(mod1, .~.-SEG_LENGTH)
+summary(mod1)
+```
+
+This looks good! Each of the p-values are well below our alpha of 0.10. So our first linear model is
+
+$$
+\widehat {\verb|AADT|} = 18844 - 12353 \cdot \verb|I|\verb|(Class=4|) -16705 \cdot \verb|I|\verb|(Class=5|) + 44\cdot \verb|SURFWD| + 2167\cdot \verb|THRULNQTY| -294\cdot \verb|THRULNWD|
+$$
+
+### Model Validity
+
+We want to show that a linear model is a good type of model for this interaction. On the residual plot below, this is indicated by the points being symmetrically distributed above and below the value of 0. Furthermore, the residual points should be uniform and not fan out to ensure our model has equal variance of residuals.
+
+```{r}
+plot(mod1$residuals)
+```
+
+Although this isn't perfect, there isn't anything so egregious to justify not using a linear model.
+
+We also want our model to be normally distributed, which on the Q-Q plot below would look like a straight 45 degree line.
+
+```{r}
+plot(mod1,which=2)
+```
+
+Like before, this isn't perfect, but given that there are over 6000 observations, it is not unexpected to see at least some theoretical quantiles fall below -4 or above 4.
+
+## Linear Model 2 - Some Features, No Outliers, No Interactions
+
+### Outliers
+
+```{r}
+outliers = outlierTest(mod1)
+subset(traffic,rownames(traffic)%in%names(outliers$rstudent))
+```
+
+So our only outlines were 1st, 6th, and Peoria Street. These are all larger streets. 1st is particularly impressive, with only 3 lanes and an $\verb|AADT|$ of 52000. In an effort to better model smaller streets, we acknowledge that these outliers are skewing the linear model and affecting the model. We will also try a model without these observations for thoroughness.
+
+```{r}
+traffic = subset(traffic,!rownames(traffic)%in%names(outliers$rstudent))
+mod2 = lm(AADT ~ I(FUNCCLASSI) + SURFWD + THRULNQTY + THRULNWD , data = traffic)
+summary(mod2)
+```
+
+As expected, removing these few points didn't actually change that much with our correlation coefficients nor the associated statistics.
+
+$$
+\widehat {\verb|AADT|} = 18844 - 12353 \cdot \verb|I|\verb|(Class=4|) -16705 \cdot \verb|I|\verb|(Class=5|) + 44\cdot \verb|SURFWD| + 2167\cdot \verb|THRULNQTY| -294\cdot \verb|THRULNWD|
+$$
+
+## Linear Model 3 - Some Features, No Outliers, Interactions
+
+### Interactions
+
+It is also important to consider how features interact with each other. For example, dividing the width of lanes by the inverse of lane quantity can be considered some sort of density. Or, given that there is a lot of time spent in acceleration, and deceleration, it would be understandable if the length of the run had a cubic interaction to account for saved time and ease of flow on longer stretches.
+
+```{r}
+mod3 = lm(AADT ~ I(FUNCCLASSI) + SURFWD + THRULNQTY + THRULNWD + THRULNWD/THRULNQTY + I(RUNLENGTH1^3), data = traffic)
+summary(mod3)
+```
+
+$$
+\widehat {\verb|AADT|} = 23756 - 12434 \cdot \verb|I|\verb|(Class=4|) -16875 \cdot \verb|I|\verb|(Class=5|) + 45\cdot \verb|SURFWD| + 321\cdot \verb|THRULNQTY| + 169 \cdot \frac{\verb|THRULNWD|}{\verb|THRULNQTY|} -733\cdot \verb|THRULNWD| -9\cdot \verb|RUNLENGTH|^3
+$$
+
+Including these interactions made the model more convoluted and difficult to predict with. Furthermore, including them greatly changed the intercept and the coefficient for $\verb|THRULNQTY|$. So it is questionable that this would be a better model in practice. Accordingly, we propose the use of the second model generally, and it will be the one used in latter parts of the project.
+
+## Cross Validation
+
+```{r}
+trafficTest = read.csv("DenTraffic2019Test.csv")
+y_pred = predict(mod2, type = 'response', newdata = trafficTest)
+MAPE(y_pred=y_pred, y_true = trafficTest$AADT)
+```
+
+```{r}
+MSE(y_pred=y_pred,y_true = trafficTest$AADT)
+```
+
+```{r}
+NormalizedGini(y_pred=y_pred, y_true = trafficTest$AADT)
+```
+
+```{r}
+goodPreds = y_pred > .9*trafficTest$AADT & y_pred < 1.1*trafficTest$AADT
+sum(goodPreds)/length(y_pred)
+```
+
+Hmm these results don't seem too promising. It looks like only about 18% of predictions were within 10% of the real world value. Furthermore, an mean absolute percentage error of 75% indicates that the model does quite poorly, but the normalized GINI coefficient of 0.82 indicates that our model does well *given its circumstances*. These values shouldn't change much for our different models though, so we'll only show the statistics for the 3th model.
+
+```{r}
+y_pred = predict(mod3, type = 'response', newdata = trafficTest)
+MAPE(y_pred=y_pred, y_true = trafficTest$AADT)
+```
+
+```{r}
+MSE(y_pred=y_pred,y_true = trafficTest$AADT)
+```
+
+```{r}
+NormalizedGini(y_pred=y_pred, y_true = trafficTest$AADT)
+```
+
+```{r}
+goodPreds = y_pred > .9*trafficTest$AADT & y_pred < 1.1*trafficTest$AADT
+sum(goodPreds)/length(y_pred)
+```
+
+Nothing changes that much. Our models are very similar and had similar $R^2$ scores so it's very understandable that they performed similarly.
+
+## Export Models
+
+```{r}
+saveRDS(mod1,"model1Full")
+saveRDS(mod2,"model2Thin")
+saveRDS(mod3,"model3Inter")
+```
+
+```{r}
+library(plotly)
+
+fig <- plot_ly(traffic, x = ~AADT, y = ~SURFWD, z = ~THRULNQTY, type = 'scatter3d',color=traffic$FUNCCLASSI, opacity = 1, mode= "marker")
+
+fig
+```

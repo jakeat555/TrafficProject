@@ -1,0 +1,28 @@
+reset;
+option solver cplex;
+model 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlow.mod';
+
+display "Current";
+data 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlowCurrent.dat';
+solve;
+display sum{(i,j) in ROADS} time[i,j];
+display sum{(i,j) in ROADS} Traffic[i,j];
+display sum{(i,j) in ROADS} capacity[i,j];
+
+reset;
+display "Oneway";
+model 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlow.mod';
+data 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlowOneWay.dat';
+solve;
+display sum{(i,j) in ROADS} time[i,j];
+display sum{(i,j) in ROADS} Traffic[i,j];
+display sum{(i,j) in ROADS} capacity[i,j];
+
+reset;
+display "Twoway";
+model 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlow.mod';
+data 'C:\Users\Jacob\Documents\2023 Fall\Traffic ProjectFinal\Linear Programming\DenverFlowTwoWay.dat';
+solve;
+display sum{(i,j) in ROADS} time[i,j];
+display sum{(i,j) in ROADS} Traffic[i,j];
+display sum{(i,j) in ROADS} capacity[i,j];
